@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Карта Настоек</title>
+    
+    <!-- Подключаем Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Подключаем Vue.js -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- Иконки -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Винтажные шрифты от Google -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        vintage: {
+                            bg: '#f0e6d2',       /* Цвет старой бумаги */
+                            card: '#fdfbf7',     /* Светлый пергамент */
+                            dark: '#2c1810',     /* Темный кофейный */
+                            accent: '#8b4513',   /* Коричневый кожаный */
+                            border: '#d4c5a5'    /* Цвет границ */
+                        }
+                    },
+                    fontFamily: {
+                        serif: ['"Playfair Display"', 'serif'],
+                        body: ['"Lora"', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #f0e6d2;
+            color: #2c1810;
+            font-family: 'Lora', serif;
+            /* Эффект шума для текстуры бумаги */
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+        }
+        
+        /* Стилизация скроллбара */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f0e6d2; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #8b4513; 
+            border-radius: 4px;
+        }
+
+        .vintage-header {
+            background-color: #f0e6d2;
+            border-bottom: 2px solid #8b4513;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            box-shadow: 0 4px 6px -1px rgba(44, 24, 16, 0.1);
+        }
+
+        .vintage-card {
+            background-color: #fdfbf7;
+            border: 1px solid #d4c5a5;
+            box-shadow: 4px 4px 0px rgba(139, 69, 19, 0.1); /* Жесткая тень */
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .vintage-card::before {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            right: 4px;
+            bottom: 4px;
+            border: 1px dashed #e5dcc5;
+            pointer-events: none;
+        }
+
+        .vintage-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 6px 6px 0px rgba(139, 69, 19, 0.15);
+            border-color: #8b4513;
+        }
+
+        .vintage-input {
+            background-color: transparent;
+            border: 2px solid #8b4513;
+            color: #2c1810;
+        }
+        .vintage-input::placeholder {
+            color: #8b4513;
+            opacity: 0.5;
+            font-style: italic;
+        }
+
+        /* Декоративная линия */
+        .separator {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 20px 0;
+            color: #8b4513;
+            opacity: 0.3;
+        }
+        .separator::before, .separator::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #8b4513;
+        }
+        .separator::before { margin-right: .25em; }
+        .separator::after { margin-left: .25em; }
+    </style>
+</head>
+<body>
+
+<div id="app" class="min-h-screen pb-12">
+    
+    <!-- Шапка -->
+    <div class="vintage-header py-4 px-4 mb-8">
+        <div class="max-w-4xl mx-auto">
+            <h1 class="text-4xl font-serif font-bold text-vintage-dark text-center mb-1 tracking-wide">
+                Меню Настоек
+            </h1>
+            <p class="text-center text-vintage-accent text-sm italic mb-6">~ Домашняя коллекция & Рецепты ~</p>
+            
+            <div class="relative max-w-xl mx-auto">
+                <input 
+                    v-model="searchQuery" 
+                    type="text" 
+                    placeholder="Поиск по названию..." 
+                    class="vintage-input w-full pl-10 pr-4 py-3 rounded-md focus:outline-none focus:ring-1 focus:ring-vintage-accent text-lg font-serif"
+                >
+                <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-vintage-accent opacity-70"></i>
+                
+                <button 
+                    v-if="searchQuery" 
+                    @click="searchQuery = ''"
+                    class="absolute right-3 top-1/2 transform -translate-y-1/2 text-vintage-accent hover:text-red-800 transition-colors"
+                >
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Список -->
+    <div class="max-w-4xl mx-auto px-4">
+        
+        <div class="flex justify-between items-end mb-4 border-b border-vintage-accent border-opacity-20 pb-2">
+            <span class="text-vintage-accent font-serif italic text-lg">Список напитков</span>
+            <span class="text-sm text-vintage-dark opacity-60 font-mono">Всего: {{ filteredList.length }}</span>
+        </div>
+
+        <div v-if="filteredList.length === 0" class="text-center py-20 text-vintage-accent opacity-60">
+            <i class="fas fa-wine-bottle text-5xl mb-4"></i>
+            <p class="font-serif text-xl italic">В погребе такого не найдено...</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
+            <div 
+                v-for="(item, index) in filteredList" 
+                :key="index"
+                class="vintage-card rounded-sm p-5 flex flex-col justify-between h-full"
+            >
+                <div class="relative z-10">
+                    <div class="flex items-start justify-between">
+                        <h3 class="font-serif font-bold text-vintage-dark text-xl leading-tight mb-3">
+                            {{ item.name }}
+                        </h3>
+                    </div>
+                    
+                    <!-- Теги в винтажном стиле -->
+                    <div class="flex flex-wrap gap-2 mt-2">
+                        <span v-if="isSpicy(item.name)" class="px-2 py-0.5 text-xs font-bold uppercase tracking-wider border border-red-800 text-red-900 bg-red-100 bg-opacity-30 rounded-sm">
+                            <i class="fas fa-fire-alt text-[10px] mr-1"></i>Острая
+                        </span>
+                        <span v-if="isCreamy(item.name)" class="px-2 py-0.5 text-xs font-bold uppercase tracking-wider border border-yellow-700 text-yellow-900 bg-yellow-100 bg-opacity-30 rounded-sm">
+                            <i class="fas fa-star text-[10px] mr-1"></i>Сливочная
+                        </span>
+                        <span v-if="isBS(item.name)" class="px-2 py-0.5 text-xs font-bold uppercase tracking-wider border border-green-800 text-green-900 bg-green-100 bg-opacity-30 rounded-sm">
+                            <i class="fas fa-seedling text-[10px] mr-1"></i>Б/С
+                        </span>
+                        <span v-if="isChoco(item.name)" class="px-2 py-0.5 text-xs font-bold uppercase tracking-wider border border-amber-900 text-amber-950 bg-amber-200 bg-opacity-20 rounded-sm">
+                            <i class="fas fa-cookie text-[10px] mr-1"></i>Десерт
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Подвал -->
+        <div class="separator mt-12">
+            <i class="fas fa-glass-whiskey text-xl mx-2"></i>
+        </div>
+        <div class="text-center text-vintage-accent opacity-60 text-sm font-serif pb-8">
+            Created for connoisseurs
+        </div>
+    </div>
+</div>
+
+<script>
+    const { createApp } = Vue
+
+    createApp({
+        data() {
+            return {
+                searchQuery: '',
+                rawData: `
+Абрикос
+Амаретто
+Ананас
+Ангостура
+Анисовка
+Апельсин-Кофе
+Апельсин-Розмарин
+Апельсиновый Ликер
+Барбарис-изюм
+Баунти
+Белый персик
+Белый русский
+Бехеровка
+БонДюшес
+Бородинская водка
+Борщ
+Боярышник
+Брусника
+Брусника Б/С
+Брусника Грейп Лимон
+Брусника Черника
+Васаби
+Виноград красный
+Виноград Крыжовник
+Вишня
+Вишня Б/С
+Вишня в шоколаде
+Вишня на миндале
+Вишня-Облепиха
+Глинтвейн
+Грейп можжевельник
+Грейпфрут
+Греча
+Груша
+Груша банан
+Дыня Торпеда
+Жгучая малина
+Жгучий лимон
+Злая Ангостура
+Зубровка
+Изумрудная фея
+Изюмовка
+Имбирь
+Кактус алоэ мед
+Каркадe
+Киви
+Клубника
+Клубника Б/С
+Клубника грейп лимон
+Клубника-Базилик
+Клубничный йогурт
+Клюква
+Клюква Б/С
+Клюква-Апельсин
+Клюква-Можжевельник
+Клюква-Облепиха
+Клюква-Облепиха Б/С
+Кокос
+Кокосовая смородина
+Компотная
+Кориандр
+Кофейная настойка
+Крамбамбуля
+Красная смородина
+Красная смородина Б/С
+Красный крыжовник
+Крыжовник и сирень
+Крыжовник Клубника
+Крыжовник Малина
+Крыжовник Улун
+Кукуруза Кузя
+Лайм Мята
+Лесная
+Лимон-Кофе
+Лимонный хрен
+Лимончелло
+Лимончелло Б/С
+Липтон
+Лишня
+Малина
+Малина -Облепиха
+Малина Б/С
+Малина маракуйя
+Малина Шалфей
+Манго ананас
+Манго Яблоко
+Медово-Пряная
+Мятная малина
+Мятный ликер
+Облепиха
+Облепиха Б/С
+Облепиха-Апельсин-Розмарин
+Оранжина
+Острая клубника
+Острая корица-грейп
+Охотничий хрен
+Пабло Ананас
+Персик
+Персик жасмин
+Перцовка/ (менее острая)
+Перцовка/// (более острая)
+Плодовый сад
+По-рыбацки
+Пряный кофе-лимон
+Ревень
+Сицилийский апельсин
+Сладкая тыква
+Сливочная Ваниль
+Сливочная Вишня
+Сливочная Дыня
+Сливочная Земляника
+Сливочная Клубника
+Сливочная корица
+Сливочная Курага
+Сливочная Малина
+Сливочная мята
+Сливочная Соленая карамель
+Сливочное манго
+Сливочное шоколадное печенье
+Сливочный банан
+Сливочный Клён
+Сливочный кокос
+Сливочный лимончелло
+Сливочный миндаль
+Смородина-Гранат
+Солянка
+Спайси Апельсин
+Спайси манго
+Сушеный лимон
+Тархун
+ТатраТи
+Тмин
+Томатная (острая)
+Томатная морковка
+Фейхоа
+Финик
+Халва с Ванилью
+Хвойная
+Хлебная
+Хреновуха на меду
+Цитрусовый Ананас
+Черная смородина
+Черная смородина Б/С
+Черника
+Черника Б/С
+Черноплодка Бузина
+Чернослив
+Черри Ли
+Чеснок
+Шаровая молния
+Шиповник
+Шоколад
+ШокоЛоко
+Яблоко
+Яблоко-Имбир
+Яблоко-Шиповник
+                `
+            }
+        },
+        computed: {
+            nastoykas() {
+                return this.rawData.split('\n')
+                    .map(item => item.trim())
+                    .filter(item => item.length > 0)
+                    .sort((a, b) => a.localeCompare(b))
+                    .map(name => ({ name }));
+            },
+            filteredList() {
+                const query = this.searchQuery.toLowerCase();
+                return this.nastoykas.filter(item => 
+                    item.name.toLowerCase().includes(query)
+                );
+            }
+        },
+        methods: {
+            isSpicy(name) {
+                const n = name.toLowerCase();
+                return n.includes('острая') || n.includes('жгуч') || n.includes('перцов') || n.includes('спайси') || n.includes('хрен') || n.includes('васаби');
+            },
+            isCreamy(name) {
+                const n = name.toLowerCase();
+                return n.includes('сливочн') || n.includes('йогурт');
+            },
+            isBS(name) {
+                return name.includes('Б/С');
+            },
+            isChoco(name) {
+                const n = name.toLowerCase();
+                return n.includes('шоколад') || n.includes('шоколоко') || n.includes('баунти') || n.includes('печенье');
+            }
+        }
+    }).mount('#app')
+</script>
+
+</body>
+</html>
