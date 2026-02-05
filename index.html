@@ -74,6 +74,7 @@
             top: 0;
             z-index: 50;
             box-shadow: 0 4px 6px -1px rgba(44, 24, 16, 0.1);
+			 transition: transform 0.3s ease-in-out; 
         }
 
         .vintage-card {
@@ -130,7 +131,7 @@
 <div id="app" class="min-h-screen pb-12">
     
     <!-- Шапка -->
-    <div class="vintage-header py-6 px-4 mb-8">
+    <div class="vintage-header py-6 px-4 mb-8" :class="{ 'header-hidden': !showHeader }">
         <div class="max-w-4xl mx-auto">
             
             <!-- ЛОГОТИП -->
@@ -368,6 +369,8 @@
     createApp({
         data() {
             return {
+				showHeader: true,
+                lastScrollPosition: 0,
                 searchQuery: '',
                 // Список сокращен для краткости в этом сообщении, но вставьте сюда ваш ПОЛНЫЙ список
                 rawData: `
@@ -530,6 +533,35 @@
                 `
             }
         },
+		// Вставьте это МЕЖДУ data: {...}, и computed: {...}
+        
+        mounted() {
+            window.addEventListener('scroll', this.onScroll);
+        },
+        
+        // В блок methods добавьте функцию onScroll:
+        methods: {
+            onScroll() {
+                const currentScrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+                
+                // Если мы на самом верху страницы — всегда показывать шапку
+                if (currentScrollPosition < 60) {
+                    this.showHeader = true;
+                    this.lastScrollPosition = currentScrollPosition;
+                    return;
+                }
+
+                // Если прокручиваем ВНИЗ (< 0) — скрываем, если ВВЕРХ — показываем
+                // Также проверяем, чтобы скролл не был отрицательным (для iOS)
+                if (Math.abs(currentScrollPosition - this.lastScrollPosition) < 10) return;
+
+                this.showHeader = currentScrollPosition < this.lastScrollPosition;
+                this.lastScrollPosition = currentScrollPosition;
+            },
+
+            // ... ваши остальные методы (isSpicy, isCreamy и т.д.) ...
+            isSpicy(name) { ... }
+        }
         computed: {
             nastoykas() {
                 return this.rawData.split('\n')
